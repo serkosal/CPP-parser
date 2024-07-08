@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+#build folders
+out/*
+build/*
+
+#ide folder
+.vs/*
+
+#doxygen configuration files
+Doxyfile*
