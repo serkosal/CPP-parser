@@ -20,7 +20,7 @@ Tokenizer::Tokenizer()
 		"&=", "|=", "^=", "~=", "<<=", ">>=",
 		","
 	};
-	m_escape_sequence = "\n\t\v\a\b\f\r\"";
+	m_escape_sequence = "ntvabfr\\\"";
 	m_forbidden = "#$':?@\\`";
 
 	m_brackets = "(){}[]";
@@ -221,4 +221,9 @@ void Tokenizer::tokenize(const std::string& str)
 		++i;
 		last_token().m_value += cur_char;
 	}
+
+	if (m_state == State::string || m_state == State::string_escape)
+		last_token().m_type = Token::Type::invalid;
+	if (m_state == State::_operator)
+		last_token().m_type = Token::Type::invalid;
 }
