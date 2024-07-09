@@ -29,16 +29,20 @@ target_include_directories(
 	cppParser 
 	PRIVATE "include/"
 )
-#add_executable(
-#	cppParser
-#	
-#	"src/main.cpp"
-#	"src/tokenizer.cpp"
-#)
-#target_link_libraries(
-#	cppParser 
-#	PUBLIC TOKENIZER
-#)
+add_executable(
+	cppParserInteractive
+	
+	"src/main.cpp"
+	"src/tokenizer.cpp"
+)
+target_link_libraries(
+	cppParserInteractive 
+	PUBLIC cppParser
+)
+target_include_directories(
+	cppParserInteractive 
+	PRIVATE "include/"
+)
 
 
 ## TESTING 
