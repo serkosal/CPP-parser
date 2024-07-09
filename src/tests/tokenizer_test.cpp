@@ -6,7 +6,7 @@
 
 Tokenizer tokenizer;
 
-TEST(IdentificatorCreation, SimpleIdentificator)
+TEST(IdentificatorCreation, simple)
 {
 	tokenizer.reset();
 	tokenizer.tokenize("variable");
@@ -18,7 +18,7 @@ TEST(IdentificatorCreation, SimpleIdentificator)
 	EXPECT_EQ(tokens[0].m_type, Token::Type::identificator);
 }
 
-TEST(IdentificatorCreation, IdSpaceSeparated)
+TEST(IdentificatorCreation, spaceSeparated)
 {
 	tokenizer.reset();
 	tokenizer.tokenize("first second\nthird\tfourth");
@@ -33,7 +33,7 @@ TEST(IdentificatorCreation, IdSpaceSeparated)
 	EXPECT_EQ(tokens[3].m_type, Token::Type::identificator);
 }
 
-TEST(IdentificatorCreation, IdWithUnderscores)
+TEST(IdentificatorCreation, withUnderscores)
 {
 	tokenizer.reset();
 	tokenizer.tokenize("var _var va_r var_ rav");
@@ -49,7 +49,7 @@ TEST(IdentificatorCreation, IdWithUnderscores)
 	EXPECT_EQ(tokens[4].m_type, Token::Type::identificator);
 }
 
-TEST(IdentificatorCreation, IdWithDigits)
+TEST(IdentificatorCreation, withDigits)
 {
 	tokenizer.reset();
 	tokenizer.tokenize("var var1 va2r 3var");
@@ -64,7 +64,7 @@ TEST(IdentificatorCreation, IdWithDigits)
 	EXPECT_EQ(tokens[3].m_type, Token::Type::invalid);
 }
 
-TEST(IdentificatorCreation, IdWithDigitsUnderscore)
+TEST(IdentificatorCreation, withDigitsUnderscore)
 {
 	tokenizer.reset();
 	tokenizer.tokenize(
@@ -93,7 +93,7 @@ TEST(IdentificatorCreation, IdWithDigitsUnderscore)
 }
 
 
-TEST(IntegerCreation, IntegerPositive)
+TEST(IntegerCreation, positive)
 {
 	tokenizer.reset();
 	tokenizer.tokenize("1234567890");
@@ -105,7 +105,7 @@ TEST(IntegerCreation, IntegerPositive)
 	EXPECT_EQ(tokens[0].m_type, Token::Type::integer);
 }
 
-TEST(IntegerCreation, IntegerNegative)
+TEST(IntegerCreation, negative)
 {
 	tokenizer.reset();
 	tokenizer.tokenize("-30");
@@ -117,7 +117,7 @@ TEST(IntegerCreation, IntegerNegative)
 	EXPECT_EQ(tokens[0].m_type, Token::Type::integer);
 }
 
-TEST(IntegerCreation, IntegerZero)
+TEST(IntegerCreation, zero)
 {
 	tokenizer.reset();
 	tokenizer.tokenize("0");
@@ -130,7 +130,7 @@ TEST(IntegerCreation, IntegerZero)
 }
 
 
-TEST(StringCreation, SimpleString)
+TEST(StringCreation, simple)
 {
 	tokenizer.reset();
 	tokenizer.tokenize("\"abcdfhksdhkfvmks\"");
@@ -142,7 +142,7 @@ TEST(StringCreation, SimpleString)
 	EXPECT_EQ(tokens[0].m_type, Token::Type::string);
 }
 
-TEST(StringCreation, StrSpaceSeparated)
+TEST(StringCreation, spaceSeparated)
 {
 	tokenizer.reset();
 	tokenizer.tokenize("\"first\" \"second\"");
@@ -155,7 +155,7 @@ TEST(StringCreation, StrSpaceSeparated)
 	EXPECT_EQ(tokens[1].m_type, Token::Type::string);
 }
 
-TEST(StringCreation, StrWithSpace)
+TEST(StringCreation, spaceInside)
 {
 	tokenizer.reset();
 	tokenizer.tokenize("\"first second\"");
@@ -167,7 +167,7 @@ TEST(StringCreation, StrWithSpace)
 	EXPECT_EQ(tokens[0].m_type, Token::Type::string);
 }
 
-TEST(StringCreation, StrWithEscapeSequences)
+TEST(StringCreation, escapeSequences)
 {
 	tokenizer.reset();
 	auto str = std::string() + 
@@ -199,7 +199,7 @@ TEST(StringCreation, StrWithEscapeSequences)
 	EXPECT_EQ(tokens[9].m_type, Token::Type::invalid);
 }
 
-TEST(StringCreation, StrEscapeSequenceDontEnd)
+TEST(StringCreation, escapeSequenceDoesntEnd)
 {
 	tokenizer.reset();
 	tokenizer.tokenize(
@@ -211,4 +211,129 @@ TEST(StringCreation, StrEscapeSequenceDontEnd)
 	ASSERT_EQ(tokens.size(), size_t(1));
 
 	EXPECT_EQ(tokens[0].m_type, Token::Type::invalid);
+}
+
+
+
+TEST(OperatorCreation, arithmetic)
+{
+	tokenizer.reset();
+	tokenizer.tokenize("+ - * ** / // % ++ --");
+
+	auto& tokens = tokenizer.tokens();
+
+	ASSERT_EQ(tokens.size(), size_t(9));
+
+	EXPECT_EQ(tokens[0].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[1].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[2].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[3].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[4].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[5].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[6].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[7].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[8].m_type, Token::Type::_operator);
+}
+
+TEST(OperatorCreation, incorrectArithmetic)
+{
+	tokenizer.reset();
+	tokenizer.tokenize("+- -+ %% %/ /%");
+
+	auto& tokens = tokenizer.tokens();
+
+	ASSERT_EQ(tokens.size(), size_t(5));
+
+	EXPECT_EQ(tokens[0].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[1].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[2].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[3].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[4].m_type, Token::Type::invalid);
+}
+
+TEST(OperatorCreation, logicAndComparison)
+{
+	tokenizer.reset();
+	tokenizer.tokenize("== != ! && || < > <= >=");
+
+	auto& tokens = tokenizer.tokens();
+
+	ASSERT_EQ(tokens.size(), size_t(9));
+
+	EXPECT_EQ(tokens[0].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[1].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[2].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[3].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[4].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[5].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[6].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[7].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[8].m_type, Token::Type::_operator);
+}
+
+TEST(OperatorCreation, incorrectLogicAndComparison)
+{
+	tokenizer.reset();
+					//   0  1  2  3  4  5  6   7
+	tokenizer.tokenize("=! !! &| |& <> => =< <=>");
+
+	auto& tokens = tokenizer.tokens();
+
+	ASSERT_EQ(tokens.size(), size_t(8));
+
+	EXPECT_EQ(tokens[0].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[1].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[2].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[3].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[4].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[5].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[6].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[7].m_type, Token::Type::invalid);
+}
+
+TEST(OperatorCreation, bitwise)
+{
+	tokenizer.reset();
+					  //0 1 2 3  4  5
+	tokenizer.tokenize("& | ^ ~ << >> ");
+
+	auto& tokens = tokenizer.tokens();
+
+	ASSERT_EQ(tokens.size(), size_t(6));
+
+	EXPECT_EQ(tokens[0].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[1].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[2].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[3].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[4].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[5].m_type, Token::Type::_operator);
+}
+
+TEST(OperatorCreation, assignment)
+{
+	tokenizer.reset();
+						
+					 // 0  1  2  3   4  5   6  7   8   9 10 11 12 13  14  15
+	tokenizer.tokenize("= += -= *= **= /= //= %= &&= ||= &= |= ^= ~= <<= >>=");
+
+	auto& tokens = tokenizer.tokens();
+
+	ASSERT_EQ(tokens.size(), size_t(16));
+
+	EXPECT_EQ(tokens[0].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[1].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[2].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[3].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[4].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[5].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[6].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[7].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[8].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[9].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[10].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[11].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[12].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[13].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[14].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[15].m_type, Token::Type::_operator);
 }

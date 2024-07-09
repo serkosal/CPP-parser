@@ -13,8 +13,8 @@ struct Token
 {
 	enum class Type
 	{
-		empty,
-		invalid = -1,
+		empty = -2,
+		invalid,
 
 		integer,
 		floating,

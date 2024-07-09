@@ -65,8 +65,8 @@ public:
 	void tokenize(const std::string& str);
 
 private:
-	std::string					m_pot_op_start;		// potential operator start
-	std::vector<std::string>	m_operators;		// actual operators
+	std::string					m_pot_op;		// potential operator start
+	std::vector<std::string>	m_actual_ops;		// actual operators
 	std::string					m_forbidden;		// forbidden for use characters
 	std::string					m_delimiters;		// delimiters char
 	std::string					m_brackets;			// brackets and parenthesis
@@ -78,7 +78,10 @@ private:
 
 	State						m_state = State::new_token;
 
-	Token& last_token() { return m_tokens.back(); }
+	Token& last_token() 
+	{ 
+		return m_tokens.back(); 
+	}
 
 	void state_change(State new_state);
 	void push_token(const Token& token)		{ m_tokens.push_back(token); }

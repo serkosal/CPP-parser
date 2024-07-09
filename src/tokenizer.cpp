@@ -6,14 +6,14 @@ Tokenizer::Tokenizer()
 	m_cur_line = 1;
 	m_cur_col = 0;
 
-	m_pot_op_start = "+-*/%" "=!<>" "&|^~" ",";
-	m_operators =
+	m_pot_op = "+-*/%" "=!<>" "&|^~" ",";
+	m_actual_ops =
 	{
 		"+", "-", "*", "**", "/", "//", "%", "++", "--",
-		"==", "!=",
+		"==", "!", "!=",
 		"<", "<=", ">", ">=",
 		"&&", "||",
-		"&", "|",  "^", "~", "<<", ">>"
+		"&", "|",  "^", "~", "<<", ">>",
 		"=",
 		"+=", "-=", "*=", "**=", "/=", "//=", "%=",
 		"&&=", "||=",
@@ -25,7 +25,7 @@ Tokenizer::Tokenizer()
 
 	m_brackets = "(){}[]";
 
-	m_delimiters = ";," + m_pot_op_start + m_brackets;
+	m_delimiters = ";," + m_pot_op + m_brackets;
 }
 
 void Tokenizer::state_change(State new_state)
@@ -53,7 +53,7 @@ void Tokenizer::state_change(State new_state)
 		last_token().m_type = Token::Type::invalid;
 		break;
 	case State::_operator:
-		last_token().m_type = Token::Type::invalid;
+		last_token().m_type = Token::Type::_operator;
 		break;
 	}
 }
@@ -81,6 +81,11 @@ void Tokenizer::tokenize(const std::string& str)
 				last_token().m_value += cur_char;
 			else if (m_state == State::string_escape)
 				state_change(State::invalid);
+			else if (m_state == State::integer && last_token().m_value == "-")
+			{
+				m_tokens.back().m_type = Token::Type::_operator;
+				state_change(State::new_token);
+			}
 			else
 				state_change(State::new_token);
 
@@ -112,7 +117,7 @@ void Tokenizer::tokenize(const std::string& str)
 			else if (cur_char == '#')
 				state_change(State::commentary);
 			// operators
-			else if (m_pot_op_start.find(cur_char) != std::string::npos)
+			else if (m_pot_op.find(cur_char) != std::string::npos)
 				state_change(State::_operator);
 			// brackets and parenthesis
 			else if (m_brackets.find(cur_char) != std::string::npos)
@@ -163,7 +168,14 @@ void Tokenizer::tokenize(const std::string& str)
 		}
 		case State::integer:
 		{
-			if (m_delimiters.find(cur_char) != std::string::npos)
+			if (last_token().m_value == "-" && m_pot_op.find(cur_char) != std::string::npos)
+			{
+				if (cur_char == '-' || cur_char == '=')
+					state_change(State::_operator);
+				else
+					state_change(State::invalid);
+			}
+			else if (m_delimiters.find(cur_char) != std::string::npos)
 			{
 				state_change(State::new_token);
 				++i;
@@ -199,22 +211,26 @@ void Tokenizer::tokenize(const std::string& str)
 		}
 		case State::_operator:
 		{
-			if (m_pot_op_start.find(cur_char) != std::string::npos)
+			auto cur_pot_op = last_token().m_value;
+			// if cur char is in the list of operator's characters 
+			// then we will check is that sequence form an valid operator
+			if (m_pot_op.find(cur_char) != std::string::npos)
 			{
-				auto cur_pot_op = last_token().m_value;
-
-				if (std::find(m_operators.begin(), m_operators.end(), cur_pot_op + cur_char) != m_operators.end())
-					state_change(State::new_token);
-				else if (std::find(m_operators.begin(), m_operators.end(), cur_pot_op) != m_operators.end())
-				{
-					state_change(State::new_token);
-					++i;
-					continue;
-				}
-				else
+				if (std::find(m_actual_ops.begin(), m_actual_ops.end(), cur_pot_op + cur_char) == m_actual_ops.end())
 					state_change(State::invalid);
 			}
-			break;
+			else
+			{
+				if (std::find(m_actual_ops.begin(), m_actual_ops.end(), cur_pot_op) != m_actual_ops.end())
+					state_change(State::new_token);
+				else
+				{
+					last_token().m_type = Token::Type::invalid;
+					++i;
+					state_change(State::new_token);
+					continue;
+				}
+			}
 		}
 		}
 
@@ -224,6 +240,7 @@ void Tokenizer::tokenize(const std::string& str)
 
 	if (m_state == State::string || m_state == State::string_escape)
 		last_token().m_type = Token::Type::invalid;
-	if (m_state == State::_operator)
+	if (m_state == State::_operator &&
+		std::find(m_actual_ops.begin(), m_actual_ops.end(),last_token().m_value) == m_actual_ops.end())
 		last_token().m_type = Token::Type::invalid;
 }
