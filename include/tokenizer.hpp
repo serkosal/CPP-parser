@@ -4,6 +4,7 @@
 
 #include <token.hpp>
 
+#include <set>
 #include <string>
 #include <vector>
 
@@ -65,12 +66,12 @@ public:
 	const std::vector<Token>& tokenize(const std::string& str);
 
 private:
-	std::string					m_pot_op;		// potential operator start
-	std::vector<std::string>	m_actual_ops;		// actual operators
-	std::string					m_forbidden;		// forbidden for use characters
-	std::string					m_delimiters;		// delimiters char
-	std::string					m_brackets;			// brackets and parenthesis
-	std::string					m_escape_sequence;	// escape sequence
+	std::set<char>				m_pot_op;		// potential operator start
+	std::set<std::string>		m_actual_ops;		// actual operators
+	std::set<char>				m_forbidden;		// forbidden for use characters
+	std::set<char>				m_delimiters;		// delimiters char
+	std::set<char>				m_brackets;			// brackets and parenthesis
+	std::set<char>				m_escape_sequence;	// escape sequence
 
 	std::vector<Token>			m_tokens;			//
 	size_t						m_cur_line	= 1,
