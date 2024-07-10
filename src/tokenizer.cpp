@@ -57,6 +57,9 @@ void Tokenizer::state_change(State new_state)
 	case State::_operator:
 		last_token().m_type = Token::Type::_operator;
 		break;
+	case State::_operator_invalid:
+		last_token().m_type = Token::Type::invalid;
+		break;
 	}
 }
 
@@ -175,7 +178,7 @@ const std::vector<Token>& Tokenizer::tokenize(const std::string& str)
 				if (cur_char == '-' || cur_char == '=')
 					state_change(State::_operator);
 				else
-					state_change(State::invalid);
+					state_change(State::_operator_invalid);
 			}
 			else if (m_delimiters.count(cur_char))
 			{
@@ -218,7 +221,7 @@ const std::vector<Token>& Tokenizer::tokenize(const std::string& str)
 			if (m_pot_op.count(cur_char))
 			{
 				if (m_actual_ops.count(cur_pot_op + cur_char) == 0)
-					state_change(State::invalid);
+					state_change(State::_operator_invalid);
 			}
 			else
 			{
@@ -236,7 +239,18 @@ const std::vector<Token>& Tokenizer::tokenize(const std::string& str)
 					continue;
 				}
 			}
+			break;
 		}
+		case State::_operator_invalid:
+		{
+			if (m_actual_ops.count(last_token().m_value + cur_char) == 0)
+			{
+				state_change(State::new_token);
+				continue;
+			}
+			break;
+		}
+
 		}
 
 		++i;

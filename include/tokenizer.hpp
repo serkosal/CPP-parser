@@ -31,6 +31,7 @@ public:
 
 		commentary,
 
+		_operator_invalid,
 		_operator,
 
 		string,

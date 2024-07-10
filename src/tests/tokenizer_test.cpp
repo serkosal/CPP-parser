@@ -415,3 +415,22 @@ TEST(OperatorInteraction, integers)
 	EXPECT_EQ(tokens[13].m_type, Token::Type::integer);
 	EXPECT_EQ(tokens[13].m_value, "13");
 }
+
+TEST(OperatorInteraction, incorrect)
+{
+	tokenizer.reset();
+	auto& tokens = tokenizer.tokenize("**/2 //+3");
+	ASSERT_EQ(tokens.size(), size_t(4));
+
+	EXPECT_EQ(tokens[0].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[0].m_value, "**/");
+
+	EXPECT_EQ(tokens[1].m_type, Token::Type::integer);
+	EXPECT_EQ(tokens[1].m_value, "2");
+
+	EXPECT_EQ(tokens[2].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[2].m_value, "//+");
+
+	EXPECT_EQ(tokens[3].m_type, Token::Type::integer);
+	EXPECT_EQ(tokens[3].m_value, "3");
+}
