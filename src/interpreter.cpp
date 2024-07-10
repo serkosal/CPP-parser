@@ -11,7 +11,7 @@ void print_tokens(const std::vector<Token>& tokens)
 		switch (el.m_type)
 		{
 		case Token::Type::invalid:
-			std::cout << " of invalid type\n";
+			std::cout << " of invalid type";
 			break;
 		case Token::Type::integer:
 			std::cout << " of integer type";

@@ -32,7 +32,7 @@ target_include_directories(
 add_executable(
 	cppParserInteractive
 	
-	"src/main.cpp"
+	"src/interpreter.cpp"
 	"src/tokenizer.cpp"
 )
 target_link_libraries(
