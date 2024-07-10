@@ -58,7 +58,7 @@ void Tokenizer::state_change(State new_state)
 	}
 }
 
-void Tokenizer::tokenize(const std::string& str)
+const std::vector<Token>& Tokenizer::tokenize(const std::string& str)
 {
 	auto n = str.size();
 
@@ -178,7 +178,6 @@ void Tokenizer::tokenize(const std::string& str)
 			else if (m_delimiters.find(cur_char) != std::string::npos)
 			{
 				state_change(State::new_token);
-				++i;
 				continue;
 			}
 			else if (cur_char == '.')
@@ -222,12 +221,16 @@ void Tokenizer::tokenize(const std::string& str)
 			else
 			{
 				if (std::find(m_actual_ops.begin(), m_actual_ops.end(), cur_pot_op) != m_actual_ops.end())
+				{
 					state_change(State::new_token);
+					continue;
+				}
+
 				else
 				{
 					last_token().m_type = Token::Type::invalid;
-					++i;
 					state_change(State::new_token);
+					++i;
 					continue;
 				}
 			}
@@ -243,4 +246,6 @@ void Tokenizer::tokenize(const std::string& str)
 	if (m_state == State::_operator &&
 		std::find(m_actual_ops.begin(), m_actual_ops.end(),last_token().m_value) == m_actual_ops.end())
 		last_token().m_type = Token::Type::invalid;
+
+	return m_tokens;
 }

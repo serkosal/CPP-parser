@@ -62,7 +62,7 @@ public:
 		m_cur_col = 0;
 		m_state = State::new_token;
 	}
-	void tokenize(const std::string& str);
+	const std::vector<Token>& tokenize(const std::string& str);
 
 private:
 	std::string					m_pot_op;		// potential operator start
@@ -78,10 +78,7 @@ private:
 
 	State						m_state = State::new_token;
 
-	Token& last_token() 
-	{ 
-		return m_tokens.back(); 
-	}
+	Token& last_token() { return m_tokens.back(); }
 
 	void state_change(State new_state);
 	void push_token(const Token& token)		{ m_tokens.push_back(token); }
