@@ -192,6 +192,7 @@ TEST(StringCreation, spaceSeparated)
 
 	EXPECT_EQ(tokens[0].m_type, Token::Type::string);
 	EXPECT_EQ(tokens[0].m_value, "\"first\"");
+
 	EXPECT_EQ(tokens[1].m_type, Token::Type::string);
 	EXPECT_EQ(tokens[1].m_value, "\"second\"");
 }
@@ -205,6 +206,7 @@ TEST(StringCreation, spaceInside)
 	ASSERT_EQ(tokens.size(), size_t(1));
 
 	EXPECT_EQ(tokens[0].m_type, Token::Type::string);
+	EXPECT_EQ(tokens[0].m_value, "\"first second\"");
 }
 
 TEST(StringCreation, escapeSequences)
@@ -221,32 +223,52 @@ TEST(StringCreation, escapeSequences)
 		'"' + '\\' +  'f' + '"' + ' '  +	// 6
 		'"' + '\\' +  'v' + '"' + ' '  +	// 7
 		'"' + '\\' +  'r' + '"' + ' '  +	// 8
-		'"' + '\\' +  'x' + '"' + ' '		// 9
+		'"' + '\\' +  'x' + '"'				// 9
 	);
 
 	ASSERT_EQ(tokens.size(), size_t(10));
 
-	EXPECT_EQ(tokens[0].m_type, Token::Type::string);
-	EXPECT_EQ(tokens[1].m_type, Token::Type::string);
-	EXPECT_EQ(tokens[2].m_type, Token::Type::string);
-	EXPECT_EQ(tokens[3].m_type, Token::Type::string);
-	EXPECT_EQ(tokens[4].m_type, Token::Type::string);
-	EXPECT_EQ(tokens[5].m_type, Token::Type::string);
-	EXPECT_EQ(tokens[6].m_type, Token::Type::string);
-	EXPECT_EQ(tokens[7].m_type, Token::Type::string);
-	EXPECT_EQ(tokens[8].m_type, Token::Type::string);
+	EXPECT_EQ(tokens[0].m_type, Token::Type::string );
+	EXPECT_EQ(tokens[0].m_value, std::string() + '"' + '"' + '"');
+
+	EXPECT_EQ(tokens[1].m_type, Token::Type::string );
+	EXPECT_EQ(tokens[1].m_value, std::string() + '"' + '\\' + '"');
+
+	EXPECT_EQ(tokens[2].m_type, Token::Type::string );
+	EXPECT_EQ(tokens[2].m_value, std::string() + '"' + '\n' + '"');
+
+	EXPECT_EQ(tokens[3].m_type, Token::Type::string );
+	EXPECT_EQ(tokens[3].m_value, std::string() + '"' + '\t' + '"');
+
+	EXPECT_EQ(tokens[4].m_type, Token::Type::string );
+	EXPECT_EQ(tokens[4].m_value, std::string() + '"' + '\a' + '"');
+
+	EXPECT_EQ(tokens[5].m_type, Token::Type::string );
+	EXPECT_EQ(tokens[5].m_value, std::string() + '"' + '\b' + '"');
+
+	EXPECT_EQ(tokens[6].m_type, Token::Type::string );
+	EXPECT_EQ(tokens[6].m_value, std::string() + '"' + '\f' + '"');
+
+	EXPECT_EQ(tokens[7].m_type, Token::Type::string );
+	EXPECT_EQ(tokens[7].m_value, std::string() + '"' + '\v' + '"');
+
+	EXPECT_EQ(tokens[8].m_type, Token::Type::string );
+	EXPECT_EQ(tokens[8].m_value, std::string() + '"' + '\r' + '"');
+
 	EXPECT_EQ(tokens[9].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[9].m_value, std::string() + '"' + '\\' + 'x' + '"');
 }
 
 TEST(StringCreation, escapeSequenceDoesntEnd)
 {
 	tokenizer.reset();
 
-	auto& tokens = tokenizer.tokenize("\" \\");
+	auto& tokens = tokenizer.tokenize("\"\\");
 
 	ASSERT_EQ(tokens.size(), size_t(1));
 
 	EXPECT_EQ(tokens[0].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[0].m_value, "\"");
 }
 
 
@@ -260,14 +282,31 @@ TEST(OperatorCreation, arithmetic)
 	ASSERT_EQ(tokens.size(), size_t(9));
 
 	EXPECT_EQ(tokens[0].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[0].m_value, "+");
+
 	EXPECT_EQ(tokens[1].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[1].m_value, "-");
+
 	EXPECT_EQ(tokens[2].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[2].m_value, "*");
+
 	EXPECT_EQ(tokens[3].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[3].m_value, "**");
+
 	EXPECT_EQ(tokens[4].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[4].m_value, "/");
+
 	EXPECT_EQ(tokens[5].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[5].m_value, "//");
+
 	EXPECT_EQ(tokens[6].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[6].m_value, "%");
+
 	EXPECT_EQ(tokens[7].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[7].m_value, "++");
+
 	EXPECT_EQ(tokens[8].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[8].m_value, "--");
 }
 
 TEST(OperatorCreation, incorrectArithmetic)
@@ -279,10 +318,19 @@ TEST(OperatorCreation, incorrectArithmetic)
 	ASSERT_EQ(tokens.size(), size_t(5));
 
 	EXPECT_EQ(tokens[0].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[0].m_value, "+-");
+
 	EXPECT_EQ(tokens[1].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[1].m_value, "-+");
+
 	EXPECT_EQ(tokens[2].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[2].m_value, "%%");
+
 	EXPECT_EQ(tokens[3].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[3].m_value, "%/");
+
 	EXPECT_EQ(tokens[4].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[4].m_value, "/%");
 }
 
 TEST(OperatorCreation, logicAndComparison)
@@ -294,14 +342,31 @@ TEST(OperatorCreation, logicAndComparison)
 	ASSERT_EQ(tokens.size(), size_t(9));
 
 	EXPECT_EQ(tokens[0].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[0].m_value, "==");
+
 	EXPECT_EQ(tokens[1].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[1].m_value, "!=");
+
 	EXPECT_EQ(tokens[2].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[2].m_value, "!");
+
 	EXPECT_EQ(tokens[3].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[3].m_value, "&&");
+
 	EXPECT_EQ(tokens[4].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[4].m_value, "||");
+
 	EXPECT_EQ(tokens[5].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[5].m_value, "<");
+
 	EXPECT_EQ(tokens[6].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[6].m_value, ">");
+
 	EXPECT_EQ(tokens[7].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[7].m_value, "<=");
+
 	EXPECT_EQ(tokens[8].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[8].m_value, ">=");
 }
 
 TEST(OperatorCreation, incorrectLogicAndComparison)
@@ -313,13 +378,28 @@ TEST(OperatorCreation, incorrectLogicAndComparison)
 	ASSERT_EQ(tokens.size(), size_t(8));
 
 	EXPECT_EQ(tokens[0].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[0].m_value, "=!");
+
 	EXPECT_EQ(tokens[1].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[1].m_value, "!!");
+
 	EXPECT_EQ(tokens[2].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[2].m_value, "&|");
+
 	EXPECT_EQ(tokens[3].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[3].m_value, "|&");
+
 	EXPECT_EQ(tokens[4].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[4].m_value, "<>");
+
 	EXPECT_EQ(tokens[5].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[5].m_value, "=>");
+
 	EXPECT_EQ(tokens[6].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[6].m_value, "=<");
+
 	EXPECT_EQ(tokens[7].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[7].m_value, "<=>");
 }
 
 TEST(OperatorCreation, bitwise)
@@ -331,11 +411,22 @@ TEST(OperatorCreation, bitwise)
 	ASSERT_EQ(tokens.size(), size_t(6));
 
 	EXPECT_EQ(tokens[0].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[0].m_value, "&");
+
 	EXPECT_EQ(tokens[1].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[1].m_value, "|");
+
 	EXPECT_EQ(tokens[2].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[2].m_value, "^");
+
 	EXPECT_EQ(tokens[3].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[3].m_value, "~");
+
 	EXPECT_EQ(tokens[4].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[4].m_value, "<<");
+
 	EXPECT_EQ(tokens[5].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[5].m_value, ">>");
 }
 
 TEST(OperatorCreation, assignment)
@@ -347,21 +438,52 @@ TEST(OperatorCreation, assignment)
 	ASSERT_EQ(tokens.size(), size_t(16));
 
 	EXPECT_EQ(tokens[0].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[0].m_value, "=");
+
 	EXPECT_EQ(tokens[1].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[1].m_value, "+=");
+
 	EXPECT_EQ(tokens[2].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[2].m_value, "-=");
+
 	EXPECT_EQ(tokens[3].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[3].m_value, "*=");
+
 	EXPECT_EQ(tokens[4].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[4].m_value, "**=");
+
 	EXPECT_EQ(tokens[5].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[5].m_value, "/=");
+
 	EXPECT_EQ(tokens[6].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[6].m_value, "//=");
+
 	EXPECT_EQ(tokens[7].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[7].m_value, "%=");
+
 	EXPECT_EQ(tokens[8].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[8].m_value, "&&=");
+
 	EXPECT_EQ(tokens[9].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[9].m_value, "||=");
+
 	EXPECT_EQ(tokens[10].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[10].m_value, "&=");
+
 	EXPECT_EQ(tokens[11].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[11].m_value, "|=");
+
 	EXPECT_EQ(tokens[12].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[12].m_value, "^=");
+
 	EXPECT_EQ(tokens[13].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[13].m_value, "~=");
+
 	EXPECT_EQ(tokens[14].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[14].m_value, "<<=");
+
 	EXPECT_EQ(tokens[15].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[15].m_value, ">>=");
 }
 
 
@@ -419,8 +541,8 @@ TEST(OperatorInteraction, integers)
 TEST(OperatorInteraction, incorrect)
 {
 	tokenizer.reset();
-	auto& tokens = tokenizer.tokenize("**/2 //+3");
-	ASSERT_EQ(tokens.size(), size_t(4));
+	auto& tokens = tokenizer.tokenize("**/2 //+3 2+--b");
+	ASSERT_EQ(tokens.size(), size_t(7));
 
 	EXPECT_EQ(tokens[0].m_type, Token::Type::invalid);
 	EXPECT_EQ(tokens[0].m_value, "**/");
@@ -433,4 +555,42 @@ TEST(OperatorInteraction, incorrect)
 
 	EXPECT_EQ(tokens[3].m_type, Token::Type::integer);
 	EXPECT_EQ(tokens[3].m_value, "3");
+
+	EXPECT_EQ(tokens[4].m_type, Token::Type::integer);
+	EXPECT_EQ(tokens[4].m_value, "2");
+
+	EXPECT_EQ(tokens[5].m_type, Token::Type::invalid);
+	EXPECT_EQ(tokens[5].m_value, "+--");
+
+	EXPECT_EQ(tokens[6].m_type, Token::Type::identificator);
+	EXPECT_EQ(tokens[6].m_value, "b");
+}
+
+
+
+
+TEST(ScopesInteractions, identitificators)
+{
+	tokenizer.reset();
+	auto& tokens = tokenizer.tokenize("test(2 + 3)");
+
+	ASSERT_EQ(tokens.size(), size_t(6));
+
+	EXPECT_EQ(tokens[0].m_type, Token::Type::identificator);
+	EXPECT_EQ(tokens[0].m_value, "test");
+
+	EXPECT_EQ(tokens[1].m_type, Token::Type::bracket);
+	EXPECT_EQ(tokens[1].m_value, "(");
+
+	EXPECT_EQ(tokens[2].m_type, Token::Type::integer);
+	EXPECT_EQ(tokens[2].m_value, "2");
+
+	EXPECT_EQ(tokens[3].m_type, Token::Type::_operator);
+	EXPECT_EQ(tokens[3].m_value, "+");
+
+	EXPECT_EQ(tokens[4].m_type, Token::Type::integer);
+	EXPECT_EQ(tokens[4].m_value, "3");
+
+	EXPECT_EQ(tokens[5].m_type, Token::Type::bracket);
+	EXPECT_EQ(tokens[5].m_value, ")");
 }

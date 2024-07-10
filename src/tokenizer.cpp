@@ -140,7 +140,6 @@ const std::vector<Token>& Tokenizer::tokenize(const std::string& str)
 			if (m_delimiters.count(cur_char))
 			{
 				state_change(State::new_token);
-				++i;
 				continue;
 			}
 			else if (!isalnum(cur_char) && cur_char != '_')
@@ -162,13 +161,26 @@ const std::vector<Token>& Tokenizer::tokenize(const std::string& str)
 		}
 		case State::string_escape:
 		{
-			if (m_escape_sequence.count(cur_char))
-				state_change(State::string);
+			if      (cur_char == 'n')  last_token().m_value += '\n';
+			else if (cur_char == 't')  last_token().m_value += '\t';
+			else if (cur_char == 'a')  last_token().m_value += '\a';
+			else if (cur_char == 'b')  last_token().m_value += '\b';
+			else if (cur_char == 'f')  last_token().m_value += '\f';
+			else if (cur_char == 'v')  last_token().m_value += '\v';
+			else if (cur_char == 'r')  last_token().m_value += '\r';
+			else if (cur_char == '"')  last_token().m_value += '\"';
+			else if (cur_char == '\\') last_token().m_value += '\\';
 			else
 			{
+				last_token().m_type = Token::Type::invalid;
 				last_token().m_value += '\\';
-				state_change(State::invalid);
+				last_token().m_value += cur_char;
 			}
+
+			m_state = State::string;
+			++i;
+			continue;
+
 			break;
 		}
 		case State::integer:
@@ -196,7 +208,6 @@ const std::vector<Token>& Tokenizer::tokenize(const std::string& str)
 			if (m_delimiters.count(cur_char))
 			{
 				state_change(State::new_token);
-				++i;
 				continue;
 			}
 			else if (!isdigit(cur_char))
@@ -208,7 +219,6 @@ const std::vector<Token>& Tokenizer::tokenize(const std::string& str)
 			if (m_delimiters.count(cur_char))
 			{
 				state_change(State::new_token);
-				++i;
 				continue;
 			}
 			break;
@@ -243,7 +253,7 @@ const std::vector<Token>& Tokenizer::tokenize(const std::string& str)
 		}
 		case State::_operator_invalid:
 		{
-			if (m_actual_ops.count(last_token().m_value + cur_char) == 0)
+			if (m_pot_op.count(cur_char) == 0)
 			{
 				state_change(State::new_token);
 				continue;
